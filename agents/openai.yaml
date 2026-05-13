@@ -1,0 +1,4 @@
+interface:
+  display_name: "Unity MCP Bootstrap"
+  short_description: "Boot and reconnect Unity-MCP locally."
+  default_prompt: "Use this skill to start or recover a local Unity-MCP HTTP bridge, relaunch Unity if needed, and confirm the project is registered before runtime validation."
