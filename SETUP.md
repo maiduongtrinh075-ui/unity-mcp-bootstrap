@@ -21,6 +21,7 @@ Recommended full install:
 - `EXAMPLES.md`
 - `CHANGELOG.md`
 - `references/`
+- `scripts/`
 
 ## Expected Environment
 
@@ -61,4 +62,20 @@ After install, a simple first check is:
 Get-Process | Where-Object { $_.ProcessName -like '*mcp*' -or $_.ProcessName -like 'Unity*' }
 Invoke-RestMethod -Uri 'http://127.0.0.1:8080/health' -Method Get
 Invoke-RestMethod -Uri 'http://127.0.0.1:8080/api/instances' -Method Get
+```
+
+## Script-Backed Verification
+
+Prefer these packaged helpers when you want a repeatable local workflow:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start_unity_mcp_http.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\wait_for_unity_instance.ps1 -TimeoutSeconds 120
+```
+
+If execution policy is annoying on this machine, use:
+
+```bat
+scripts\start_unity_mcp_http.cmd
+scripts\wait_for_unity_instance.cmd
 ```

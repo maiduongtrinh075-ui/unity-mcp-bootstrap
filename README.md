@@ -5,8 +5,9 @@ Bootstrap and recover a local Unity-MCP bridge for Unity projects on Windows.
 This repository packages the `unity-mcp-bootstrap` Codex skill as a standalone skill repo. It is meant to solve the practical gap between "Unity-MCP is configured" and "Unity-MCP is actually reachable right now".
 
 Chinese documentation is included by default:
+
 - English: [README.md](README.md)
-- 中文: [README_CN.md](README_CN.md)
+- Chinese: [README_CN.md](README_CN.md)
 
 ## What This Skill Does
 
@@ -31,6 +32,8 @@ It is tuned for the Windows workflow used in `D:\Workspace`, but the overall rec
 - [SETUP.md](SETUP.md): install and wiring guide
 - [EXAMPLES.md](EXAMPLES.md): practical recovery examples
 - [references/manual-http-probe.md](references/manual-http-probe.md): raw local HTTP examples
+- [references/troubleshooting.md](references/troubleshooting.md): failure classification and fixes
+- `scripts/`: executable bootstrap helpers
 
 ## When To Use It
 
@@ -64,7 +67,11 @@ Recommended:
 
 - `README.md`
 - `README_CN.md`
+- `SETUP.md`
+- `EXAMPLES.md`
 - `CHANGELOG.md`
+- `references/`
+- `scripts/`
 
 ## Core Recovery Flow
 
@@ -76,6 +83,13 @@ Recommended:
 6. Wait for the Unity instance to re-register
 7. Only then run runtime inspection or screenshot validation
 
+## Included Scripts
+
+- `scripts/start_unity_mcp_http.ps1`: start the local HTTP bridge and verify `/health`
+- `scripts/start_unity_mcp_http.cmd`: wrapper for the script above
+- `scripts/wait_for_unity_instance.ps1`: poll `/api/instances` until Unity registers
+- `scripts/wait_for_unity_instance.cmd`: wrapper for the script above
+
 ## Notes
 
 - Local `127.0.0.1` traffic should not be routed through an external proxy
@@ -85,4 +99,4 @@ Recommended:
 
 ## Version
 
-Current packaged skill version: `1.0.0`
+Current packaged skill version: `1.1.0`

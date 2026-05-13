@@ -267,3 +267,4 @@ When you add or maintain this path, keep the capture flow PlayMode-aware:
 - [SETUP.md](SETUP.md)
 - [EXAMPLES.md](EXAMPLES.md)
 - [references/manual-http-probe.md](references/manual-http-probe.md)
+- [references/troubleshooting.md](references/troubleshooting.md)

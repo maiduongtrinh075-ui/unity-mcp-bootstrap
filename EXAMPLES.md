@@ -67,3 +67,18 @@ Response:
 2. poll `/api/instances`
 3. wait for the Unity plugin session to re-register
 4. send the highest-value runtime command immediately after reconnect
+
+## Example 6: Full Bootstrap Flow
+
+Goal:
+
+- bring up HTTP transport
+- wait for Unity to register
+- hand off to `unity-mcp-validator`
+
+Suggested route:
+
+1. `scripts/start_unity_mcp_http.cmd`
+2. open or relaunch Unity if needed
+3. `scripts/wait_for_unity_instance.cmd`
+4. run validator preflight and capture from the now-live instance
