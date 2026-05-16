@@ -1,21 +1,21 @@
-# Unity MCP Bootstrap
+# Unity MCP Bootstrap 中文说明
 
 这是一个独立的 Codex skill 仓库，用来解决 Unity-MCP 在本地 Windows 工作流里的“启动、恢复、重连”问题。
 
-很多时候并不是“配置没有写”，而是：
+很多时候并不是“配置没写”，而是：
 
 - `mcp-for-unity` 只跑在 `stdio`
 - 本地 `http://127.0.0.1:8080` 没起来
 - Unity 编辑器没开
 - 进入 `PlayMode` 或脚本重编后实例掉线
-- `/health` 正常但 `/api/instances` 为空
+- `/health` 正常，但 `/api/instances` 为空
 
-这个 skill 的目的，就是把这条恢复链固定下来，而不是每次临时猜。
+这个 skill 的目标，就是把这条恢复链固定下来，而不是每次临时猜。
 
 默认提供中英文文档：
 
-- 英文：[README.md](README.md)
-- 中文：[README_CN.md](README_CN.md)
+- English: [README.md](README.md)
+- 中文: [README_CN.md](README_CN.md)
 
 ## 这个 Skill 能做什么
 
@@ -59,7 +59,7 @@
 把整个目录复制到你的 Codex skills 目录：
 
 ```text
-C:\Users\<你自己的用户名>\.codex\skills\unity-mcp-bootstrap
+C:\Users\<你的用户名>\.codex\skills\unity-mcp-bootstrap
 ```
 
 最少需要：
@@ -89,7 +89,25 @@ C:\Users\<你自己的用户名>\.codex\skills\unity-mcp-bootstrap
 - `PlayMode` 要当成“重连边界”看待
 - `/health` 正常但 `instances` 为空，通常是 Unity 侧还没注册回来
 - `uloop` 如果写死了错误的 Unity Hub 路径，不要死磕，直接找真实的 `Unity.exe`
+- 在这台机器上，如果直接启动 `Unity.exe`，必须显式使用 `-projectPath`
+
+错误示例：
+
+```powershell
+Start-Process -FilePath 'D:\Program Files\Unity 6000.3.12f1\Editor\Unity.exe' -ArgumentList 'D:\Workspace\UnitySimpleDemo'
+```
+
+这个形式可能会拉起 Unity 进程，然后又干净退出，最后 `/api/instances` 一直为空。
+
+正确示例：
+
+```powershell
+Start-Process -FilePath 'D:\Program Files\Unity 6000.3.12f1\Editor\Unity.exe' `
+  -ArgumentList '-projectPath','D:\Workspace\UnitySimpleDemo'
+```
+
+如果 `Editor.log` 显示 Unity 收到了纯路径参数，随后以返回码 `0` 退出，这应当归类为“启动参数形状错误”，不是桥接本身失败。
 
 ## 当前版本
 
-当前打包版本：`1.0.0`
+当前打包版本：`1.2.0`

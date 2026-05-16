@@ -82,6 +82,23 @@ On this machine, Unity `6000.3.12f1` was discovered at:
 
 So when `uloop` hardcodes `C:\Program Files\Unity\Hub\Editor\<version>\Editor\Unity.exe`, use the real editor path directly instead of treating that as a mystery failure.
 
+When launching `Unity.exe` directly, do not pass the project folder as a bare positional argument on this machine. A launch such as:
+
+```powershell
+Start-Process -FilePath 'D:\Program Files\Unity 6000.3.12f1\Editor\Unity.exe' -ArgumentList 'D:\Workspace\UnitySimpleDemo'
+```
+
+can start the editor process and then exit cleanly without ever registering a Unity-MCP instance.
+
+Use the explicit project-path form instead:
+
+```powershell
+Start-Process -FilePath 'D:\Program Files\Unity 6000.3.12f1\Editor\Unity.exe' `
+  -ArgumentList '-projectPath','D:\Workspace\UnitySimpleDemo'
+```
+
+If `Editor.log` shows Unity received the project path as a plain argument and then terminated with return code `0`, treat that as a launch-shape problem, not as a bridge failure.
+
 ### 4. Keep the Unity-side bootstrap script in the project
 
 For local projects that should auto-reconnect, keep an editor bootstrap like:

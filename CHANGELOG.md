@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0 - 2026-05-16
+
+- Documented that direct `Unity.exe` relaunches on this machine must use `-projectPath`
+- Added failure classification for the case where Unity starts and then exits cleanly without registering an instance
+- Rewrote `README_CN.md` into a clean UTF-8 Chinese guide
+
 ## 1.1.0 - 2026-05-14
 
 - Added executable bootstrap helpers under `scripts/`

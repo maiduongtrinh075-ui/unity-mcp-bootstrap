@@ -96,7 +96,8 @@ Recommended:
 - PlayMode should be treated as a reconnect boundary
 - A healthy server with empty `instances` is usually a Unity-side registration issue, not proof the MCP server is broken
 - If `uloop` uses the wrong Unity Hub path, launch the real `Unity.exe` directly
+- When launching `Unity.exe` directly on this machine, use `-projectPath` explicitly. Passing the project folder as a bare positional argument can start Unity and then exit cleanly without ever registering a Unity-MCP instance.
 
 ## Version
 
-Current packaged skill version: `1.1.0`
+Current packaged skill version: `1.2.0`
