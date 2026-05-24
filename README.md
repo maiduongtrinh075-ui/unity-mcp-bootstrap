@@ -20,6 +20,7 @@ This skill helps Codex:
 - relaunch Unity when the editor is closed
 - recover from PlayMode or domain-reload disconnects
 - classify bridge failures honestly instead of guessing
+- return concrete recommendations such as "fix C# compile errors first", "wait for reconnect", or "inspect shader/material pipeline"
 
 It is tuned for the Windows workflow used in `D:\Workspace`, but the overall recovery logic is generally useful anywhere Unity-MCP is used locally.
 
@@ -123,4 +124,4 @@ The command emits JSON and exits non-zero if the bridge is not usable. A success
 
 ## Version
 
-Current packaged skill version: `1.4.0`
+Current packaged skill version: `1.5.0`

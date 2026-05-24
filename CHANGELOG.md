@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.0 - 2026-05-24
+
+- Added diagnosis recommendations to `unity_mcp_diagnose.ps1`
+- Recommendations now distinguish compile errors, reconnect boundaries, shader/material problems, missing script references, missing HTTP bridge, closed Unity editor, and missing Unity instance registration
+
 ## 1.4.0 - 2026-05-24
 
 - Added `scripts/unity_mcp_diagnose.ps1` and `.cmd`

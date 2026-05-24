@@ -1,6 +1,6 @@
 interface:
   display_name: "Unity MCP Bootstrap"
-  version: "1.4.0"
+  version: "1.5.0"
   short_description: "Boot and reconnect Unity-MCP locally."
   default_prompt: "Use this skill to start or recover a local Unity-MCP HTTP bridge, relaunch Unity if needed, and confirm the project is registered before runtime validation."
   capabilities:
@@ -10,3 +10,4 @@ interface:
     - "Wait for Unity to register before runtime inspection"
     - "Classify bridge failures into server, editor, reconnect, or request-shape problems"
     - "Diagnose process, instance, and Editor.log state as JSON"
+    - "Return actionable diagnosis recommendations from Editor.log and bridge state"

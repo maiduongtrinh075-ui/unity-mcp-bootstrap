@@ -12,6 +12,7 @@
 - 在传入 `-ProjectPath` 且没有匹配实例时，用 `Unity.exe -projectPath` 启动项目
 - 等待 Unity 重新注册实例
 - 输出 JSON，方便后续 `unity-mcp-validator` 或其他脚本继续使用
+- 在诊断结果里给出下一步建议，例如先修 C# 编译错误、等待 reconnect、检查 shader/material/render pipeline
 
 ## 推荐用法
 
@@ -95,4 +96,4 @@ powershell -ExecutionPolicy Bypass -File D:\Workspace\unity-mcp-validator\script
 
 ## 当前版本
 
-当前打包版本：`1.4.0`
+当前打包版本：`1.5.0`

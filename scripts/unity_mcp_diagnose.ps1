@@ -86,6 +86,56 @@ function Get-LogSignals {
     }
 }
 
+function Has-Signal {
+    param(
+        [object]$Log,
+        [string]$Name
+    )
+    return @($Log.signals | Where-Object { $_.name -eq $Name }).Count -gt 0
+}
+
+function Get-Recommendations {
+    param(
+        [string]$Classification,
+        [object]$Log
+    )
+
+    $items = New-Object System.Collections.Generic.List[string]
+
+    if (Has-Signal $Log 'compile_error') {
+        $items.Add('Editor.log shows C# compile errors. Fix scripts first; restarting the bridge will not make Unity register reliably until compilation succeeds.')
+    }
+    if (Has-Signal $Log 'disconnected') {
+        $items.Add('Editor.log shows disconnect/session rotation signals such as 1005 or session superseded. Treat this as a reconnect boundary: poll /api/instances, then retry the highest-value command against the fresh instance.')
+    }
+    if (Has-Signal $Log 'shader_or_material') {
+        $items.Add('Editor.log shows shader/material or pink/magenta signals. Inspect render pipeline compatibility, missing shaders, and material assignments before accepting visual output.')
+    }
+    if (Has-Signal $Log 'missing_script') {
+        $items.Add('Editor.log shows missing script references. Inspect imported prefabs and scene objects for broken MonoBehaviour components.')
+    }
+
+    switch ($Classification) {
+        'http_bridge_down' {
+            $items.Add('HTTP bridge is down. Start mcp-for-unity with --transport http --http-url http://127.0.0.1:8080 before running validation.')
+        }
+        'unity_editor_not_running' {
+            $items.Add('Unity editor is not running. Launch the project with Unity.exe -projectPath <ProjectPath>, then wait for /api/instances.')
+        }
+        'unity_instance_not_registered' {
+            $items.Add('HTTP is healthy but no Unity instance is registered. Check the Unity-side MCP plugin, wait through script reloads, and inspect Editor.log for reconnect or compile errors.')
+        }
+        'different_unity_instance_registered' {
+            $items.Add('A Unity instance is registered, but not the requested project. Pass the correct -Project value or close/open the intended project.')
+        }
+        'ready' {
+            $items.Add('Bridge and requested Unity instance are ready. It is safe to run smoke, visual gates, or runtime commands.')
+        }
+    }
+
+    return @($items.ToArray())
+}
+
 $health = Invoke-LocalGet '/health'
 $instances = Invoke-LocalGet '/api/instances'
 $processes = Get-ProcessSnapshot
@@ -110,6 +160,8 @@ $classification = if (-not $health.ok) {
 } else {
     'unity_instance_not_registered'
 }
+
+$recommendations = Get-Recommendations -Classification $classification -Log $log
 
 [pscustomobject]@{
     ok = ($classification -eq 'ready')
@@ -148,6 +200,7 @@ $classification = if (-not $health.ok) {
     })
     processes = $processes
     editor_log = $log
+    recommendations = $recommendations
 } | ConvertTo-Json -Depth 8
 
 if ($classification -ne 'ready') {

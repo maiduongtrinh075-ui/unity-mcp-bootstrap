@@ -212,6 +212,8 @@ Use this exact order:
    powershell -ExecutionPolicy Bypass -File .\scripts\unity_mcp_diagnose.ps1 -Project UnitySimpleDemo
    ```
 
+   Use the returned `recommendations` array. If it reports compile errors, fix C# first. If it reports `1005` or session rotation, poll `/api/instances` and retry against the fresh instance. If it reports shader/material signals, inspect render pipeline compatibility before accepting visuals.
+
 4. Confirm `/health`
 5. If missing, start HTTP transport
 6. Check `/api/instances`
