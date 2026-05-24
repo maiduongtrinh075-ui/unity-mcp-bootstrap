@@ -69,6 +69,7 @@ Invoke-RestMethod -Uri 'http://127.0.0.1:8080/api/instances' -Method Get
 Prefer these packaged helpers when you want a repeatable local workflow:
 
 ```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\unity_mcp_bootstrap.ps1 -ProjectPath D:\Workspace\UnitySimpleDemo
 powershell -ExecutionPolicy Bypass -File .\scripts\start_unity_mcp_http.ps1
 powershell -ExecutionPolicy Bypass -File .\scripts\wait_for_unity_instance.ps1 -TimeoutSeconds 120
 ```
@@ -76,6 +77,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\wait_for_unity_instance.ps1 -
 If execution policy is annoying on this machine, use:
 
 ```bat
+scripts\unity_mcp_bootstrap.cmd -ProjectPath D:\Workspace\UnitySimpleDemo
 scripts\start_unity_mcp_http.cmd
 scripts\wait_for_unity_instance.cmd
 ```
+
+The one-command bootstrap is preferred for vibe-coding loops because it returns a single JSON result and can be used before `unity-mcp-validator` without manual probing.

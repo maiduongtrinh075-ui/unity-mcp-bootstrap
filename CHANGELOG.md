@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 - 2026-05-24
+
+- Added `scripts/unity_mcp_bootstrap.ps1` as the preferred one-command bootstrap entry
+- Added `scripts/unity_mcp_bootstrap.cmd` for execution-policy-friendly Windows usage
+- The one-command flow can start HTTP, launch Unity with `-projectPath`, wait for matching instance registration, and emit JSON for downstream validators
+- Updated setup, examples, skill guidance, and Chinese documentation for vibe-coding workflows
+
 ## 1.2.0 - 2026-05-16
 
 - Documented that direct `Unity.exe` relaunches on this machine must use `-projectPath`

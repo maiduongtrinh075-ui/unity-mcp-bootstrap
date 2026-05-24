@@ -1,113 +1,85 @@
 # Unity MCP Bootstrap 中文说明
 
-这是一个独立的 Codex skill 仓库，用来解决 Unity-MCP 在本地 Windows 工作流里的“启动、恢复、重连”问题。
+这是一个独立的 Codex skill 仓库，用来把本地 Unity-MCP 桥接恢复流程固定下来。
 
-很多时候并不是“配置没写”，而是：
+它解决的不是“Unity 项目怎么写”的问题，而是更底层、更常见的阻塞点：Unity 编辑器开没开、`mcp-for-unity` 是否真的提供 HTTP、`/api/instances` 里有没有当前项目、PlayMode 或脚本重载后实例有没有掉线。
 
-- `mcp-for-unity` 只跑在 `stdio`
-- 本地 `http://127.0.0.1:8080` 没起来
-- Unity 编辑器没开
-- 进入 `PlayMode` 或脚本重编后实例掉线
-- `/health` 正常，但 `/api/instances` 为空
+## 它能做什么
 
-这个 skill 的目标，就是把这条恢复链固定下来，而不是每次临时猜。
+- 检查本地 `http://127.0.0.1:8080/health`
+- 检查 `/api/instances` 是否有 Unity 项目实例
+- 在 HTTP 不可用时启动 `mcp-for-unity.exe --transport http`
+- 在传入 `-ProjectPath` 且没有匹配实例时，用 `Unity.exe -projectPath` 启动项目
+- 等待 Unity 重新注册实例
+- 输出 JSON，方便后续 `unity-mcp-validator` 或其他脚本继续使用
 
-默认提供中英文文档：
+## 推荐用法
 
-- English: [README.md](README.md)
-- 中文: [README_CN.md](README_CN.md)
+优先使用一键脚本：
 
-## 这个 Skill 能做什么
+```bat
+scripts\unity_mcp_bootstrap.cmd -ProjectPath D:\Workspace\UnitySimpleDemo
+```
 
-它会指导 Codex：
+或者 PowerShell 形式：
 
-- 检查 `mcp-for-unity` 进程是否存在
-- 区分当前到底是 `stdio` 还是 `http` 传输
-- 拉起本地 HTTP bridge：`http://127.0.0.1:8080`
-- 验证 `/health` 和 `/api/instances`
-- 在 Unity 没打开时重启项目
-- 在 `PlayMode` / `domain reload` 后等待实例重连
-- 把失败原因分类清楚，而不是一律当成“桥挂了”
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\unity_mcp_bootstrap.ps1 -ProjectPath D:\Workspace\UnitySimpleDemo
+```
 
-## 什么时候用
+成功时会返回 `ok: true`，并包含：
 
-适合这些场景：
+- 是否新启动了 HTTP bridge
+- 是否启动了 Unity
+- 使用的 Unity.exe 路径
+- 匹配到的 Unity 实例
 
-- `Unity-MCP` 没响应
-- `/api/instances` 为空
-- Unity 编辑器没开
-- 进入 `PlayMode` 后桥接掉线
-- 想在运行时验收前，先把 MCP 恢复到可用状态
+失败时会返回 `ok: false`，并用非零退出码结束，方便自动化流程直接拦截。
 
-它和 `unity-mcp-validator` 是配套关系：
+## 和 validator 的关系
 
-- `unity-mcp-bootstrap`：先把桥拉起来
-- `unity-mcp-validator`：桥起来以后再做运行时验收
+这两个仓库建议成对使用：
+
+- `unity-mcp-bootstrap`：负责把 Unity-MCP 拉起来
+- `unity-mcp-validator`：负责进入 PlayMode、截图、扫 console、做视觉验收
+
+典型 vibe coding 流程：
+
+1. 修改 Unity 代码、Prefab、场景或资源
+2. 运行 `unity_mcp_bootstrap.cmd -ProjectPath <项目路径>`
+3. 运行 `unity_vibe_accept.cmd -ProjectPath <项目路径>`
+4. 根据截图、console 和报告继续迭代
 
 ## 仓库结构
 
-- [SKILL.md](SKILL.md)：主技能说明
-- [agents/openai.yaml](agents/openai.yaml)：Codex/OpenAI skill 元信息
-- [CHANGELOG.md](CHANGELOG.md)：版本记录
+- [SKILL.md](SKILL.md)：Codex skill 主说明
+- [agents/openai.yaml](agents/openai.yaml)：skill 元信息
 - [README.md](README.md)：英文说明
-- [SETUP.md](SETUP.md)：安装和接线说明
+- [README_CN.md](README_CN.md)：中文说明
+- [SETUP.md](SETUP.md)：安装与接线说明
 - [EXAMPLES.md](EXAMPLES.md)：常见恢复示例
+- [CHANGELOG.md](CHANGELOG.md)：变更记录
 - [references/manual-http-probe.md](references/manual-http-probe.md)：原始 HTTP 探针示例
+- [references/troubleshooting.md](references/troubleshooting.md)：故障分类
+- `scripts/`：可执行脚本
 
-## 安装方式
+## 脚本列表
 
-把整个目录复制到你的 Codex skills 目录：
+- `scripts/unity_mcp_bootstrap.ps1`：推荐的一键入口
+- `scripts/unity_mcp_bootstrap.cmd`：Windows cmd 包装
+- `scripts/start_unity_mcp_http.ps1`：只启动并验证 HTTP bridge
+- `scripts/start_unity_mcp_http.cmd`：对应 cmd 包装
+- `scripts/wait_for_unity_instance.ps1`：只等待 Unity 实例注册
+- `scripts/wait_for_unity_instance.cmd`：对应 cmd 包装
 
-```text
-C:\Users\<你的用户名>\.codex\skills\unity-mcp-bootstrap
-```
+## 注意事项
 
-最少需要：
-
-- `SKILL.md`
-- `agents/openai.yaml`
-
-建议一起带上：
-
-- `README.md`
-- `README_CN.md`
-- `CHANGELOG.md`
-
-## 固定恢复流程
-
-1. 先探测 `http://127.0.0.1:8080/health`
-2. 再探测 `http://127.0.0.1:8080/api/instances`
-3. 看 `mcp-for-unity` 当前是不是只跑在 `stdio`
-4. 如果没有本地 HTTP，就单独拉起 `http` 模式
-5. 如果 Unity 没开，就启动对应版本的 Unity 项目
-6. 轮询等待 Unity 实例重新注册
-7. 等实例回来以后，再做截图、PlayMode 检查、console 扫描等 runtime 验证
-
-## 经验要点
-
-- 本地 `127.0.0.1` 不应该走外部代理
-- `PlayMode` 要当成“重连边界”看待
+- 本地 `127.0.0.1` 不需要走外部代理
+- 只有 `stdio` 模式的 `mcp-for-unity` 进程，不等于 HTTP 自动化可用
 - `/health` 正常但 `instances` 为空，通常是 Unity 侧还没注册回来
-- `uloop` 如果写死了错误的 Unity Hub 路径，不要死磕，直接找真实的 `Unity.exe`
-- 在这台机器上，如果直接启动 `Unity.exe`，必须显式使用 `-projectPath`
-
-错误示例：
-
-```powershell
-Start-Process -FilePath 'D:\Program Files\Unity 6000.3.12f1\Editor\Unity.exe' -ArgumentList 'D:\Workspace\UnitySimpleDemo'
-```
-
-这个形式可能会拉起 Unity 进程，然后又干净退出，最后 `/api/instances` 一直为空。
-
-正确示例：
-
-```powershell
-Start-Process -FilePath 'D:\Program Files\Unity 6000.3.12f1\Editor\Unity.exe' `
-  -ArgumentList '-projectPath','D:\Workspace\UnitySimpleDemo'
-```
-
-如果 `Editor.log` 显示 Unity 收到了纯路径参数，随后以返回码 `0` 退出，这应当归类为“启动参数形状错误”，不是桥接本身失败。
+- 直接启动 `Unity.exe` 时必须显式使用 `-projectPath`
+- PlayMode、脚本重编译、domain reload 后短暂掉线是正常现象，应先轮询等待实例恢复
 
 ## 当前版本
 
-当前打包版本：`1.2.0`
+当前打包版本：`1.3.0`

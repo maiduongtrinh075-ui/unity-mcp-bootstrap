@@ -191,13 +191,19 @@ If the plugin reconnects but then the server log shows a fast `disconnected (100
 
 Use this exact order:
 
-1. Confirm `/health`
-2. If missing, start HTTP transport
-3. Check `/api/instances`
-4. If empty, confirm Unity process exists
-5. If Unity is closed, relaunch the project
-6. Tail `Editor.log` for Unity-MCP bridge status
-7. Only after the instance appears, send `/api/command`
+1. Prefer the packaged one-command bootstrap when a project path is known:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\scripts\unity_mcp_bootstrap.ps1 -ProjectPath D:\Workspace\UnitySimpleDemo
+   ```
+
+2. Confirm `/health`
+3. If missing, start HTTP transport
+4. Check `/api/instances`
+5. If empty, confirm Unity process exists
+6. If Unity is closed, relaunch the project
+7. Tail `Editor.log` for Unity-MCP bridge status
+8. Only after the instance appears, send `/api/command`
 
 ## Failure Classification
 

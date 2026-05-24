@@ -78,7 +78,16 @@ Goal:
 
 Suggested route:
 
-1. `scripts/start_unity_mcp_http.cmd`
-2. open or relaunch Unity if needed
-3. `scripts/wait_for_unity_instance.cmd`
-4. run validator preflight and capture from the now-live instance
+```bat
+scripts\unity_mcp_bootstrap.cmd -ProjectPath D:\Workspace\UnitySimpleDemo
+```
+
+The command handles:
+
+1. HTTP health probing
+2. HTTP bridge startup when missing
+3. Unity launch with explicit `-projectPath` when no matching instance is registered
+4. polling `/api/instances` until the project is visible
+5. JSON output for downstream validation scripts
+
+After this succeeds, run validator preflight and capture from the now-live instance.
