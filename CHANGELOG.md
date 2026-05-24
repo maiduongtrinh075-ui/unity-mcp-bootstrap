@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0 - 2026-05-24
+
+- Added `scripts/unity_mcp_diagnose.ps1` and `.cmd`
+- The diagnose route classifies common states such as `http_bridge_down`, `unity_editor_not_running`, `unity_instance_not_registered`, `different_unity_instance_registered`, and `ready`
+- Included Editor.log signal extraction for reconnect, compile, missing-script, shader/material, and clean-exit clues
+
 ## 1.3.1 - 2026-05-24
 
 - Documented the integrated `unity-mcp-validator` acceptance entry that calls bootstrap automatically

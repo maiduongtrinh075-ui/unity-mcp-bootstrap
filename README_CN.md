@@ -78,6 +78,8 @@ powershell -ExecutionPolicy Bypass -File D:\Workspace\unity-mcp-validator\script
 
 - `scripts/unity_mcp_bootstrap.ps1`：推荐的一键入口
 - `scripts/unity_mcp_bootstrap.cmd`：Windows cmd 包装
+- `scripts/unity_mcp_diagnose.ps1`：诊断 bridge、进程、实例和 Editor.log 状态
+- `scripts/unity_mcp_diagnose.cmd`：对应 cmd 包装
 - `scripts/start_unity_mcp_http.ps1`：只启动并验证 HTTP bridge
 - `scripts/start_unity_mcp_http.cmd`：对应 cmd 包装
 - `scripts/wait_for_unity_instance.ps1`：只等待 Unity 实例注册
@@ -93,4 +95,4 @@ powershell -ExecutionPolicy Bypass -File D:\Workspace\unity-mcp-validator\script
 
 ## 当前版本
 
-当前打包版本：`1.3.1`
+当前打包版本：`1.4.0`

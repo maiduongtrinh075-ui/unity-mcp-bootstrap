@@ -98,6 +98,8 @@ Recommended:
 
 - `scripts/unity_mcp_bootstrap.ps1`: one-command bootstrap for HTTP bridge, optional Unity launch, and instance registration
 - `scripts/unity_mcp_bootstrap.cmd`: wrapper for the script above
+- `scripts/unity_mcp_diagnose.ps1`: classify bridge, process, instance, and Editor.log state
+- `scripts/unity_mcp_diagnose.cmd`: wrapper for the script above
 - `scripts/start_unity_mcp_http.ps1`: start the local HTTP bridge and verify `/health`
 - `scripts/start_unity_mcp_http.cmd`: wrapper for the script above
 - `scripts/wait_for_unity_instance.ps1`: poll `/api/instances` until Unity registers
@@ -121,4 +123,4 @@ The command emits JSON and exits non-zero if the bridge is not usable. A success
 
 ## Version
 
-Current packaged skill version: `1.3.1`
+Current packaged skill version: `1.4.0`

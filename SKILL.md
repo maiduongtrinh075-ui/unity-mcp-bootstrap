@@ -206,13 +206,19 @@ Use this exact order:
    powershell -ExecutionPolicy Bypass -File .\scripts\unity_mcp_bootstrap.ps1 -ProjectPath D:\Workspace\UnitySimpleDemo
    ```
 
-3. Confirm `/health`
-4. If missing, start HTTP transport
-5. Check `/api/instances`
-6. If empty, confirm Unity process exists
-7. If Unity is closed, relaunch the project
-8. Tail `Editor.log` for Unity-MCP bridge status
-9. Only after the instance appears, send `/api/command`
+3. If recovery fails or the state is unclear, run the packaged diagnosis script:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\scripts\unity_mcp_diagnose.ps1 -Project UnitySimpleDemo
+   ```
+
+4. Confirm `/health`
+5. If missing, start HTTP transport
+6. Check `/api/instances`
+7. If empty, confirm Unity process exists
+8. If Unity is closed, relaunch the project
+9. Tail `Editor.log` for Unity-MCP bridge status
+10. Only after the instance appears, send `/api/command`
 
 ## Failure Classification
 
