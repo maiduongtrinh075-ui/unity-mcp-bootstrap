@@ -43,6 +43,17 @@ powershell -ExecutionPolicy Bypass -File .\scripts\unity_mcp_bootstrap.ps1 -Proj
 - `unity-mcp-bootstrap`：负责把 Unity-MCP 拉起来
 - `unity-mcp-validator`：负责进入 PlayMode、截图、扫 console、做视觉验收
 
+完整 vibe coding 验收现在建议从 validator 的集成入口启动：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File D:\Workspace\unity-mcp-validator\scripts\unity_vibe_accept.ps1 `
+  -ProjectPath D:\Workspace\UnitySimpleDemo `
+  -Project UnitySimpleDemo `
+  -Config D:\Workspace\unity-mcp-validator\validation-config.yaml
+```
+
+这个命令会先调用本仓库的 bootstrap 脚本，再继续执行 smoke 和视觉验收。
+
 典型 vibe coding 流程：
 
 1. 修改 Unity 代码、Prefab、场景或资源
@@ -82,4 +93,4 @@ powershell -ExecutionPolicy Bypass -File .\scripts\unity_mcp_bootstrap.ps1 -Proj
 
 ## 当前版本
 
-当前打包版本：`1.3.0`
+当前打包版本：`1.3.1`

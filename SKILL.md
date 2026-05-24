@@ -191,19 +191,28 @@ If the plugin reconnects but then the server log shows a fast `disconnected (100
 
 Use this exact order:
 
-1. Prefer the packaged one-command bootstrap when a project path is known:
+1. If the task is a full vibe-coding acceptance run, prefer the validator's integrated entry because it calls bootstrap first and then runs smoke / visual gates:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File D:\Workspace\unity-mcp-validator\scripts\unity_vibe_accept.ps1 `
+     -ProjectPath D:\Workspace\UnitySimpleDemo `
+     -Project UnitySimpleDemo `
+     -Config D:\Workspace\unity-mcp-validator\validation-config.yaml
+   ```
+
+2. Prefer the packaged one-command bootstrap when only bridge recovery is needed:
 
    ```powershell
    powershell -ExecutionPolicy Bypass -File .\scripts\unity_mcp_bootstrap.ps1 -ProjectPath D:\Workspace\UnitySimpleDemo
    ```
 
-2. Confirm `/health`
-3. If missing, start HTTP transport
-4. Check `/api/instances`
-5. If empty, confirm Unity process exists
-6. If Unity is closed, relaunch the project
-7. Tail `Editor.log` for Unity-MCP bridge status
-8. Only after the instance appears, send `/api/command`
+3. Confirm `/health`
+4. If missing, start HTTP transport
+5. Check `/api/instances`
+6. If empty, confirm Unity process exists
+7. If Unity is closed, relaunch the project
+8. Tail `Editor.log` for Unity-MCP bridge status
+9. Only after the instance appears, send `/api/command`
 
 ## Failure Classification
 

@@ -50,6 +50,17 @@ This skill pairs naturally with `unity-mcp-validator`:
 - `unity-mcp-bootstrap`: make the bridge reachable
 - `unity-mcp-validator`: validate runtime behavior once the bridge is alive
 
+For a full vibe-coding acceptance loop, prefer the validator's integrated entry:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File D:\Workspace\unity-mcp-validator\scripts\unity_vibe_accept.ps1 `
+  -ProjectPath D:\Workspace\UnitySimpleDemo `
+  -Project UnitySimpleDemo `
+  -Config D:\Workspace\unity-mcp-validator\validation-config.yaml
+```
+
+That command calls this bootstrap script first, then runs smoke and visual validation.
+
 ## Installation
 
 Copy this folder into your Codex skills directory:
@@ -110,4 +121,4 @@ The command emits JSON and exits non-zero if the bridge is not usable. A success
 
 ## Version
 
-Current packaged skill version: `1.3.0`
+Current packaged skill version: `1.3.1`

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1 - 2026-05-24
+
+- Documented the integrated `unity-mcp-validator` acceptance entry that calls bootstrap automatically
+- Clarified the recommended full vibe-coding loop: validator entry first, bootstrap as the recovery layer
+
 ## 1.3.0 - 2026-05-24
 
 - Added `scripts/unity_mcp_bootstrap.ps1` as the preferred one-command bootstrap entry
