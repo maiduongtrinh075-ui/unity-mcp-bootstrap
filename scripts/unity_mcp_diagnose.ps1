@@ -24,14 +24,31 @@ function Invoke-LocalGet([string]$Path) {
 }
 
 function Get-ProcessSnapshot {
+    $commandLines = @{}
+    try {
+        Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -eq 'Unity.exe' -or $_.Name -eq 'mcp-for-unity.exe' } |
+            ForEach-Object { $commandLines[[int]$_.ProcessId] = [string]$_.CommandLine }
+    } catch {
+        $commandLines = @{}
+    }
+
     return @(Get-Process -ErrorAction SilentlyContinue |
         Where-Object { $_.ProcessName -eq 'Unity' -or $_.ProcessName -eq 'mcp-for-unity' } |
         ForEach-Object {
+            $commandLine = if ($commandLines.ContainsKey([int]$_.Id)) { $commandLines[[int]$_.Id] } else { '' }
+            $transport = if ($commandLine -match '--transport\s+http') {
+                'http'
+            } elseif ($commandLine -match '--transport\s+stdio') {
+                'stdio'
+            } else {
+                ''
+            }
             [pscustomobject]@{
                 process_id = $_.Id
                 name = $_.ProcessName + '.exe'
-                command_line = ''
-                transport = ''
+                command_line = $commandLine
+                transport = $transport
             }
         })
 }
@@ -97,7 +114,8 @@ function Has-Signal {
 function Get-Recommendations {
     param(
         [string]$Classification,
-        [object]$Log
+        [object]$Log,
+        [object[]]$Processes = @()
     )
 
     $items = New-Object System.Collections.Generic.List[string]
@@ -113,6 +131,10 @@ function Get-Recommendations {
     }
     if (Has-Signal $Log 'missing_script') {
         $items.Add('Editor.log shows missing script references. Inspect imported prefabs and scene objects for broken MonoBehaviour components.')
+    }
+    if (@($Processes | Where-Object { $_.name -eq 'mcp-for-unity.exe' -and $_.transport -eq 'stdio' }).Count -gt 0 -and
+        @($Processes | Where-Object { $_.name -eq 'mcp-for-unity.exe' -and $_.transport -eq 'http' }).Count -eq 0) {
+        $items.Add('Only a stdio mcp-for-unity process was detected. This does not satisfy the local HTTP validation workflow; start a separate HTTP transport process.')
     }
 
     switch ($Classification) {
@@ -161,7 +183,7 @@ $classification = if (-not $health.ok) {
     'unity_instance_not_registered'
 }
 
-$recommendations = Get-Recommendations -Classification $classification -Log $log
+$recommendations = Get-Recommendations -Classification $classification -Log $log -Processes $processes
 
 [pscustomobject]@{
     ok = ($classification -eq 'ready')
@@ -198,9 +220,9 @@ $recommendations = Get-Recommendations -Classification $classification -Log $log
             connected_at = [string]$_.connected_at
         }
     })
-    processes = $processes
+    processes = [object[]]@($processes)
     editor_log = $log
-    recommendations = $recommendations
+    recommendations = [object[]]@($recommendations)
 } | ConvertTo-Json -Depth 8
 
 if ($classification -ne 'ready') {

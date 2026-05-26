@@ -15,6 +15,7 @@ This skill helps Codex:
 
 - detect whether `mcp-for-unity` is running at all
 - distinguish `stdio` transport from the local HTTP workflow
+- inspect process command lines when Windows exposes them, so transport detection is evidence-based
 - start a local HTTP bridge on `http://127.0.0.1:8080`
 - verify `/health` and `/api/instances`
 - relaunch Unity when the editor is closed

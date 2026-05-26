@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.0 - 2026-05-27
+
+- `unity_mcp_diagnose.ps1` now captures process command lines through WMI/CIM when available.
+- Diagnosis now labels detected `mcp-for-unity` transport as `http` or `stdio`.
+- Recommendations now call out the common case where only a stdio MCP process exists and the local HTTP validation workflow still needs a separate HTTP transport.
+
 ## 1.5.0 - 2026-05-24
 
 - Added diagnosis recommendations to `unity_mcp_diagnose.ps1`
