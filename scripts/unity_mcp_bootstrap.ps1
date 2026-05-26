@@ -23,7 +23,8 @@ function New-Result(
     [bool]$LaunchedUnity,
     [Nullable[int]]$UnityProcessId,
     [string]$ResolvedUnityExe,
-    [object]$Errors
+    [object]$Errors,
+    [object]$Diagnostics = $null
 ) {
     [pscustomobject]@{
         ok = $Ok
@@ -41,6 +42,7 @@ function New-Result(
         instances = $Instances
         matched_instances = @($MatchedInstances)
         errors = @($Errors)
+        diagnostics = $Diagnostics
     }
 }
 
@@ -135,6 +137,153 @@ function Select-MatchingInstances([object]$InstancesPayload, [string]$ProjectFil
     return $matches
 }
 
+function Get-ProcessSnapshot {
+    return @(Get-Process -ErrorAction SilentlyContinue |
+        Where-Object { $_.ProcessName -eq 'Unity' -or $_.ProcessName -eq 'mcp-for-unity' } |
+        ForEach-Object {
+            [pscustomobject]@{
+                process_id = $_.Id
+                name = $_.ProcessName + '.exe'
+                path = [string]$_.Path
+                transport = ''
+                has_exited = $false
+            }
+        })
+}
+
+function Get-EditorLogSignals {
+    $path = Join-Path $env:LOCALAPPDATA 'Unity\Editor\Editor.log'
+    if (-not (Test-Path -LiteralPath $path)) {
+        return [pscustomobject]@{
+            exists = $false
+            path = $path
+            signals = @()
+            tail = @()
+        }
+    }
+
+    $tail = @(Get-Content -LiteralPath $path -Tail 260 -ErrorAction SilentlyContinue)
+    $patterns = [ordered]@{
+        mcp_auto_start = 'UNITY MCP AUTO START|VIBE MCP AUTO BRIDGE|MCP.*auto'
+        connection_failed = 'Connection failed|connect.*failed|Unable to connect'
+        disconnected = 'disconnected|1005|session superseded'
+        compile_error = 'error CS\d+|Compilation failed|Scripts have compiler errors'
+        missing_script = 'referenced script.*Unknown|Missing.*script'
+        shader_or_material = 'Shader.*error|material.*missing|pink|magenta'
+        unity_hub_launch_shape = 'Launching Unity Hub|Exiting without the bug reporter'
+        unity_exit = 'Cleanup mono|return code|Quitting'
+    }
+    $signals = New-Object System.Collections.Generic.List[object]
+    foreach ($key in $patterns.Keys) {
+        $matches = @($tail | Where-Object { $_ -match $patterns[$key] } | Select-Object -Last 6)
+        if ($matches.Count -gt 0) {
+            $signals.Add([pscustomobject]@{
+                name = $key
+                count = $matches.Count
+                samples = @($matches | ForEach-Object {
+                    $line = [string]$_
+                    if ($line.Length -gt 320) { $line.Substring(0, 320) + '...' } else { $line }
+                })
+            })
+        }
+    }
+
+    return [pscustomobject]@{
+        exists = $true
+        path = (Resolve-Path -LiteralPath $path).Path
+        signals = @($signals.ToArray())
+        tail = @($tail | Select-Object -Last 16)
+    }
+}
+
+function New-Diagnostics {
+    param(
+        [object]$UnityProcess,
+        [object]$LastInstancesProbe
+    )
+
+    $processes = @(Get-ProcessSnapshot)
+    $unityExited = $false
+    if ($UnityProcess) {
+        try {
+            $UnityProcess.Refresh()
+            $unityExited = [bool]$UnityProcess.HasExited
+        } catch {
+            $unityExited = $true
+        }
+    }
+
+    $recommendations = New-Object System.Collections.Generic.List[string]
+    $log = Get-EditorLogSignals
+    $signalNames = @($log.signals | ForEach-Object { $_.name })
+    if ($signalNames -contains 'compile_error') {
+        $recommendations.Add('Editor.log contains compile-error signals. Fix C# first; bridge restart will not make Unity register reliably.')
+    }
+    if ($signalNames -contains 'unity_hub_launch_shape') {
+        $recommendations.Add('Editor.log shows Unity Hub launch/clean exit signals. Verify Unity was launched with -projectPath and did not receive the project path as a bare positional argument.')
+    }
+    if ($signalNames -contains 'connection_failed') {
+        $recommendations.Add('Unity appears to have connection failures. Confirm HTTP server is healthy before launching Unity, then wait for /api/instances.')
+    }
+    if ($UnityProcess -and $unityExited) {
+        $recommendations.Add('The Unity process launched by bootstrap has already exited. Inspect Editor.log for launch-shape, licensing, or compile problems.')
+    }
+    if ($recommendations.Count -eq 0) {
+        $recommendations.Add('HTTP is healthy but no matching Unity instance registered. Keep Unity open, inspect the MCP package state in the Editor, and retry /api/instances.')
+    }
+
+    return [pscustomobject]@{
+        processes = [object[]]$processes
+        launched_unity_exited = $unityExited
+        editor_log = $log
+        last_instances_probe_ok = if ($LastInstancesProbe) { [bool]$LastInstancesProbe.ok } else { $false }
+        last_instances_error = if ($LastInstancesProbe) { [string]$LastInstancesProbe.error } else { '' }
+        recommendations = [object[]]@($recommendations.ToArray())
+    }
+}
+
+function New-LightDiagnostics {
+    param([object]$UnityProcess)
+
+    $unityExited = $false
+    if ($UnityProcess) {
+        try {
+            $UnityProcess.Refresh()
+            $unityExited = [bool]$UnityProcess.HasExited
+        } catch {
+            $unityExited = $true
+        }
+    }
+
+    $processes = @(Get-Process -ErrorAction SilentlyContinue |
+        Where-Object { $_.ProcessName -eq 'Unity' -or $_.ProcessName -eq 'mcp-for-unity' } |
+        ForEach-Object {
+            [pscustomobject]@{
+                process_id = $_.Id
+                name = $_.ProcessName + '.exe'
+                path = [string]$_.Path
+            }
+        })
+
+    $recommendations = New-Object System.Collections.Generic.List[string]
+    if (@($processes | Where-Object { $_.name -eq 'mcp-for-unity.exe' }).Count -eq 0) {
+        $recommendations.Add('No mcp-for-unity process is visible. Start the HTTP bridge first.')
+    }
+    if ($UnityProcess -and $unityExited) {
+        $recommendations.Add('The Unity process launched by bootstrap has already exited. Run unity_mcp_diagnose.ps1 for Editor.log details.')
+    }
+    if ($recommendations.Count -eq 0) {
+        $recommendations.Add('Run unity_mcp_diagnose.ps1 for detailed Editor.log and transport diagnosis, then retry bootstrap.')
+    }
+
+    return [pscustomobject]@{
+        lightweight = $true
+        processes = [object[]]$processes
+        launched_unity_exited = $unityExited
+        recommendations = [object[]]@($recommendations.ToArray())
+    }
+}
+
 if (!$Project -and $ProjectPath) {
     $Project = Get-ProjectNameFromPath $ProjectPath
 }
@@ -144,6 +293,7 @@ $startedHttp = $false
 $httpProcessId = $null
 $launchedUnity = $false
 $unityProcessId = $null
+$unityProcess = $null
 $resolvedUnityExe = ''
 
 $healthProbe = Invoke-LocalGet '/health'
@@ -164,7 +314,8 @@ if (-not $healthProbe.ok) {
 }
 
 if (-not $healthProbe.ok) {
-    $result = New-Result $false 'Unity-MCP HTTP bridge is not healthy.' $healthProbe.value $null @() $startedHttp $httpProcessId $false $null $resolvedUnityExe ($errors + @($healthProbe.error))
+    $diagnostics = New-LightDiagnostics -UnityProcess $null
+    $result = New-Result $false 'Unity-MCP HTTP bridge is not healthy.' $healthProbe.value $null @() $startedHttp $httpProcessId $false $null $resolvedUnityExe ($errors + @($healthProbe.error)) $diagnostics
     $result | ConvertTo-Json -Depth 10
     exit 1
 }
@@ -178,13 +329,17 @@ if (@($matches).Count -eq 0 -and $ProjectPath -and -not $NoLaunchUnity) {
     } else {
         $resolvedUnityExe = Resolve-UnityExe $UnityExePath $ProjectPath
         $unity = Start-Process -FilePath $resolvedUnityExe -ArgumentList '-projectPath',$ProjectPath -PassThru
+        $unityProcess = $unity
         $launchedUnity = $true
         $unityProcessId = $unity.Id
     }
 }
 
 $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+$pollCount = 0
+$maxPolls = [Math]::Max(1, [Math]::Ceiling($TimeoutSeconds / 2.0) + 1)
 do {
+    $pollCount++
     $instancesProbe = Invoke-LocalGet '/api/instances'
     if ($instancesProbe.ok) {
         $matches = Select-MatchingInstances $instancesProbe.value $Project $Hash
@@ -196,9 +351,13 @@ do {
     } else {
         $errors += $instancesProbe.error
     }
+    if ($pollCount -ge $maxPolls) {
+        break
+    }
     Start-Sleep -Seconds 2
 } while ((Get-Date) -lt $deadline)
 
-$result = New-Result $false 'No matching Unity instance registered before timeout.' $healthProbe.value $instancesProbe.value @() $startedHttp $httpProcessId $launchedUnity $unityProcessId $resolvedUnityExe $errors
+$diagnostics = New-LightDiagnostics -UnityProcess $unityProcess
+$result = New-Result $false 'No matching Unity instance registered before timeout.' $healthProbe.value $instancesProbe.value @() $startedHttp $httpProcessId $launchedUnity $unityProcessId $resolvedUnityExe $errors $diagnostics
 $result | ConvertTo-Json -Depth 10
 exit 1

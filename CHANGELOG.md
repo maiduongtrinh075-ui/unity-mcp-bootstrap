@@ -5,6 +5,8 @@
 - `unity_mcp_diagnose.ps1` now captures process command lines through WMI/CIM when available.
 - Diagnosis now labels detected `mcp-for-unity` transport as `http` or `stdio`.
 - Recommendations now call out the common case where only a stdio MCP process exists and the local HTTP validation workflow still needs a separate HTTP transport.
+- `unity_mcp_bootstrap.ps1` now returns lightweight failure diagnostics instead of risking a slow deep diagnosis on the bootstrap hot path.
+- Bootstrap polling now has a poll-count guard in addition to the wall-clock deadline, so short timeout runs return predictably.
 
 ## 1.5.0 - 2026-05-24
 

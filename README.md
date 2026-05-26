@@ -22,6 +22,7 @@ This skill helps Codex:
 - recover from PlayMode or domain-reload disconnects
 - classify bridge failures honestly instead of guessing
 - return concrete recommendations such as "fix C# compile errors first", "wait for reconnect", or "inspect shader/material pipeline"
+- return quickly on bootstrap failure with lightweight diagnostics, while leaving slower Editor.log and transport forensics to `unity_mcp_diagnose.ps1`
 
 It is tuned for the Windows workflow used in `D:\Workspace`, but the overall recovery logic is generally useful anywhere Unity-MCP is used locally.
 
