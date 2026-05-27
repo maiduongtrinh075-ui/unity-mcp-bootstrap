@@ -20,6 +20,7 @@ This skill helps Codex:
 - verify `/health` and `/api/instances`
 - relaunch Unity when the editor is closed
 - recover from PlayMode or domain-reload disconnects
+- pass Unity launch arguments such as `-force-d3d11` for stable visual validation on machines where D3D12 capture crashes
 - classify bridge failures honestly instead of guessing
 - return concrete recommendations such as "fix C# compile errors first", "wait for reconnect", or "inspect shader/material pipeline"
 - return quickly on bootstrap failure with lightweight diagnostics, while leaving slower Editor.log and transport forensics to `unity_mcp_diagnose.ps1`
@@ -116,6 +117,17 @@ scripts\unity_mcp_bootstrap.cmd -ProjectPath D:\Workspace\UnitySimpleDemo
 
 The command emits JSON and exits non-zero if the bridge is not usable. A successful result includes whether HTTP was started, whether Unity was launched, and the matched Unity instance payload.
 
+Recommended local visual-validation launch on this workstation:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File D:\Workspace\unity-mcp-bootstrap\scripts\unity_mcp_bootstrap.ps1 `
+  -ProjectPath D:\Workspace\TowerDefense3D `
+  -Project TowerDefense3D `
+  -UnityArgs -force-d3d11
+```
+
+This keeps Unity on Direct3D 11. On the local machine, Editor.log confirmed `Renderer: NVIDIA GeForce RTX 4070 SUPER` with this launch shape.
+
 ## Notes
 
 - Local `127.0.0.1` traffic should not be routed through an external proxy
@@ -123,6 +135,7 @@ The command emits JSON and exits non-zero if the bridge is not usable. A success
 - A healthy server with empty `instances` is usually a Unity-side registration issue, not proof the MCP server is broken
 - If `uloop` uses the wrong Unity Hub path, launch the real `Unity.exe` directly
 - When launching `Unity.exe` directly on this machine, use `-projectPath` explicitly. Passing the project folder as a bare positional argument can start Unity and then exit cleanly without ever registering a Unity-MCP instance.
+- If Editor.log shows `d3d12: Unrecoverable GPU device error`, relaunch validation with `-UnityArgs -force-d3d11` before retrying screenshots.
 
 ## Version
 

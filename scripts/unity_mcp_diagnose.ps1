@@ -71,6 +71,7 @@ function Get-LogSignals {
         compile_error = 'error CS\d+|Compilation failed'
         missing_script = 'referenced script.*Unknown|Missing.*script'
         shader_or_material = 'Shader.*error|material.*missing|pink|magenta'
+        d3d12_device_crash = 'd3d12:.*Unrecoverable GPU device error|d3d12: Device failed|failed to Close a command list|Failed to process DXGI messages'
         unity_exit = 'Cleanup mono|return code|Quitting'
     }
     function Limit-Line([string]$Line) {
@@ -131,6 +132,9 @@ function Get-Recommendations {
     }
     if (Has-Signal $Log 'missing_script') {
         $items.Add('Editor.log shows missing script references. Inspect imported prefabs and scene objects for broken MonoBehaviour components.')
+    }
+    if (Has-Signal $Log 'd3d12_device_crash') {
+        $items.Add('Editor.log shows a D3D12 unrecoverable GPU device error. Relaunch Unity with -force-d3d11 for validation captures, then rerun the visual gate.')
     }
     if (@($Processes | Where-Object { $_.name -eq 'mcp-for-unity.exe' -and $_.transport -eq 'stdio' }).Count -gt 0 -and
         @($Processes | Where-Object { $_.name -eq 'mcp-for-unity.exe' -and $_.transport -eq 'http' }).Count -eq 0) {

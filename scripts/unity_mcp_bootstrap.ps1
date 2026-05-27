@@ -5,6 +5,7 @@ param(
     [string]$Project = '',
     [string]$Hash = '',
     [string]$UnityExePath = '',
+    [string[]]$UnityArgs = @(),
     [int]$HttpWaitSeconds = 8,
     [int]$TimeoutSeconds = 180,
     [switch]$NoLaunchUnity
@@ -328,7 +329,8 @@ if (@($matches).Count -eq 0 -and $ProjectPath -and -not $NoLaunchUnity) {
         $errors += "ProjectPath not found at $ProjectPath"
     } else {
         $resolvedUnityExe = Resolve-UnityExe $UnityExePath $ProjectPath
-        $unity = Start-Process -FilePath $resolvedUnityExe -ArgumentList '-projectPath',$ProjectPath -PassThru
+        $launchArgs = @('-projectPath', $ProjectPath) + @($UnityArgs)
+        $unity = Start-Process -FilePath $resolvedUnityExe -ArgumentList $launchArgs -PassThru
         $unityProcess = $unity
         $launchedUnity = $true
         $unityProcessId = $unity.Id

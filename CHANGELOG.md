@@ -7,6 +7,8 @@
 - Recommendations now call out the common case where only a stdio MCP process exists and the local HTTP validation workflow still needs a separate HTTP transport.
 - `unity_mcp_bootstrap.ps1` now returns lightweight failure diagnostics instead of risking a slow deep diagnosis on the bootstrap hot path.
 - Bootstrap polling now has a poll-count guard in addition to the wall-clock deadline, so short timeout runs return predictably.
+- `unity_mcp_bootstrap.ps1` accepts `-UnityArgs` for launch flags such as `-force-d3d11`.
+- Diagnosis now detects D3D12 GPU device crash signals and recommends relaunching validation with `-force-d3d11`.
 
 ## 1.5.0 - 2026-05-24
 
